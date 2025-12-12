@@ -7,7 +7,9 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse, Response
 from starlette.responses import RedirectResponse
 from sqlalchemy.orm import Session
+from starlette.status import HTTP_200_OK
 
+from api.controller_schemas import SuccessDeleteResponse
 from api.controller_schemas.url_schemas import (
     CreateUrlRequest,
     SuccessGetResponse,
@@ -163,11 +165,12 @@ def redirect_to_original_url(
 @router.delete(
     "/{short_code}",
     responses={
+        200: {"model": SuccessDeleteResponse, "description": "URL deleted successfully"},
         204: {"description": "URL deleted successfully"},
         404: {"model": FailureResponse, "description": "URL not found"},
         500: {"model": FailureResponse, "description": "Internal server error"},
     },
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=status.HTTP_200_OK,
 )
 def delete_by_short_code(
     short_code: str,
@@ -183,10 +186,12 @@ def delete_by_short_code(
                 content={"status": "failure", "message": "URL not found"},
             )
 
+        original = url_model.original_url
+
         delete_status: bool = service.delete_url(short_code)
         if delete_status:
             # 204 No Content must have an empty body
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
+            return SuccessDeleteResponse(url=original)
 
         # If deletion failed for internal reasons
         return JSONResponse(
