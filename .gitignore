@@ -14,7 +14,7 @@ venv/
 ENV/
 
 # Poetry
-poetry.lock
+# poetry.lock - KEEP THIS FILE! It ensures reproducible builds
 
 # Tests / coverage
 htmlcov/
