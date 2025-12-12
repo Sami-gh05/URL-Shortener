@@ -1,10 +1,4 @@
-"""Core services package.
+"""Core services package."""
+from core.services.url_service import UrlService, InvalidUrlError
 
-This package contains business logic services that orchestrate operations
-across repositories and implement the core functionality of URL shortening.
-"""
-
-
-
-
-
+__all__ = ["UrlService", "InvalidUrlError"]
