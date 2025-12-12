@@ -1,10 +1,14 @@
 [tool.poetry]
-name = "url-shortener"
+name = "url_shortener"
 version = "0.1.0"
 description = "URL Shortener application"
 authors = ["Sam Ghorbani-40212038 <https://sami-gh05.github.io/personal-portfolio-website/>", "Nima Sayad-40213017"]
 readme = "README.md"
 package-mode = false
+
+packages = [
+  { include = "api" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -28,3 +32,5 @@ isort = "^5.13.2"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.poetry.scripts]
+main = "api.main:run"
