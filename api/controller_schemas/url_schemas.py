@@ -3,7 +3,21 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, HttpUrl, model_validator
+
+class CreateUrlRequest(BaseModel):
+    """Request schema for creating a short URL."""
+
+    original_url: str = Field(..., description="The original URL to shorten", min_length=1)
+
+    class Config:
+        """Pydantic config."""
+
+        json_schema_extra = {
+            "example": {
+                "original_url": "https://example.com",
+            }
+        }
 
 class UrlResponse(BaseModel):
     """Response schema for URL endpoints."""
