@@ -2,7 +2,7 @@
 from api.controller_schemas.url_schemas import (
     CreateUrlRequest,
     UrlResponse,
-    SuccessResponse,
+    SuccessGetResponse, SuccessDeleteResponse, 
     SuccessListResponse,
     FailureResponse,
 )
@@ -10,7 +10,7 @@ from api.controller_schemas.url_schemas import (
 __all__ = [
     "CreateUrlRequest",
     "UrlResponse",
-    "SuccessResponse",
+    "SuccessGetResponse", "SuccessDeleteResponse",
     "SuccessListResponse",
     "FailureResponse",
 ]

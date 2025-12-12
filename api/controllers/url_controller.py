@@ -33,7 +33,7 @@ def get_url_service(
 
 @router.post(
     "",
-    response_model=SuccessResponse,
+    response_model=SuccessGetResponse,
     status_code=status.HTTP_201_CREATED,
     responses={
         400: {"model": FailureResponse, "description": "Invalid input"},
@@ -43,7 +43,7 @@ def get_url_service(
 def create_short_url(
     request: CreateUrlRequest,
     service: Annotated[UrlService, Depends(get_url_service)],
-) -> SuccessResponse:
+) -> SuccessGetResponse:
     """Create a shortened URL.
 
     Args:
@@ -59,7 +59,7 @@ def create_short_url(
     try:
         url_model = service.create_short_url(request.original_url)
         url_response = UrlResponse.model_validate(url_model)
-        return SuccessResponse(data=url_response)
+        return SuccessGetResponse(data=url_response)
     except InvalidUrlError:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -105,7 +105,7 @@ def get_all_urls(
         )
 
 @router.get(
-    "/urls/{short_code}",
+    "{short_code}",
     response_model=SuccessGetResponse,
     status_code=status.HTTP_200_OK,
     responses={
@@ -153,7 +153,7 @@ def redirect_to_original_url(
 
 
 @router.delete(
-    "/urls/{short_code}",
+    "{short_code}",
     responses={
         204: {"description": "URL deleted successfully"},
         404: {"model": FailureResponse, "description": "URL not found"},

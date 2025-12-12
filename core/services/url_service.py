@@ -114,7 +114,7 @@ class UrlService:
 
     def get_Original_url(self, short_code: str) -> Optional[str]:
         """Get Original URL by its short code"""
-        url_model = self.get_url_model(short_code)
+        url_model = self.repository.get_url_model(short_code)
         if url_model is None:
             return None
         return url_model.original_url

@@ -58,6 +58,11 @@ class SuccessDeleteResponse(BaseModel):
             self.message = f"{self.url} deleted successfully"
         return self
 
+class SuccessListResponse(BaseModel):
+    """Success response schema for list of urls."""
+    status: str = Field(default="success")
+    data: list[UrlResponse]
+
 
 class FailureResponse(BaseModel):
     """Failure response schema."""
