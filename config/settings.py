@@ -29,9 +29,16 @@ class Settings:
     DB_USER: Optional[str] = None
     DB_PASS: Optional[str] = None
     DB_HOST: Optional[str] = None
-    DB_PORT: Optional[str] = None
+    DB_PORT: Optional[int] = 5555
     DB_NAME: Optional[str] = None
     
+
+    @staticmethod
+    def _parse_int(value: Optional[str], fallback: int) -> int:
+        try:
+            return int(value) if value is not None else fallback
+        except (TypeError, ValueError):
+            return fallback
 
     @classmethod
     def load(cls) -> "Settings":
@@ -41,9 +48,9 @@ class Settings:
         """
         load_dotenv()
         DB_USER = os.getenv("DB_USER")
-        DB_PASS = os.getenv("DB_PASS","Sami84900129")
+        DB_PASS = os.getenv("DB_PASS")
         DB_HOST = os.getenv("DB_HOST")
-        DB_PORT = os.getenv("DB_PORT")
+        DB_PORT = cls._parse_int(os.getenv("DB_PORT"), fallback=cls.DB_PORT)
         DB_NAME = os.getenv("DB_NAME")
         
         DATABASE_URL = f'postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
