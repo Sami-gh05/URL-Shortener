@@ -1,10 +1,4 @@
-"""Core domain models package.
+"""Core models package."""
+from core.models.url_model import UrlModel
 
-This package contains SQLAlchemy ORM models representing the domain entities
-of the URL Shortener application, such as URL mappings and related data.
-"""
-
-
-
-
-
+__all__ = ["UrlModel"]
