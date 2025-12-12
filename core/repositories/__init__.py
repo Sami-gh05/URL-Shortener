@@ -3,6 +3,6 @@
 This package contains repository interface definitions that define the contract
 for data access operations, following the Repository pattern.
 """
-from core.repositories.url_repository import IUrlRepository
+from core.repositories.url_repository import UrlRepository
 
-__all__ = ["IUrlRepository"]
+__all__ = ["UrlRepository"]

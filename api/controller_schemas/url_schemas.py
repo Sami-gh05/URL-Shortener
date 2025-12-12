@@ -3,8 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field, HttpUrl
-
+from pydantic import BaseModel, Field, HttpUrl, model_validator
 
 class CreateUrlRequest(BaseModel):
     """Request schema for creating a short URL."""
@@ -20,9 +19,8 @@ class CreateUrlRequest(BaseModel):
             }
         }
 
-
 class UrlResponse(BaseModel):
-    """Response schema for a single URL."""
+    """Response schema for URL endpoints."""
 
     id: int
     original_url: str
@@ -30,28 +28,39 @@ class UrlResponse(BaseModel):
     created_at: datetime
 
     class Config:
-        """Pydantic config."""
-
+        """pydantic config."""
         from_attributes = True
 
 
-class SuccessResponse(BaseModel):
-    """Success response wrapper."""
+class RedirectResponse(BaseModel):
+    """Redirect response schema."""
+    status: str = Field(default="success")
+    url: str
 
-    status: str = "success"
+
+class SuccessGetResponse(BaseModel):
+    """Success response schema."""
+
+    status: str = Field(default="success")
     data: UrlResponse
 
+class SuccessDeleteResponse(BaseModel):
+    """Success response schema."""
 
-class SuccessListResponse(BaseModel):
-    """Success response wrapper for lists."""
+    status: str = Field(default="success")
+    url: str
+    message: str = Field(default="")
 
-    status: str = "success"
-    data: list[UrlResponse]
+    @model_validator(mode='after')
+    def set_message(self):
+        """Set the message based on the url field."""
+        if not self.message:
+            self.message = f"{self.url} deleted successfully"
+        return self
 
 
 class FailureResponse(BaseModel):
-    """Failure response wrapper."""
+    """Failure response schema."""
 
-    status: str = "failure"
+    status: str = Field(default="failure")
     message: str
-
