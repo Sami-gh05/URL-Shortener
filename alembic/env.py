@@ -10,8 +10,11 @@ from alembic import context
 
 load_dotenv()
 
-from url_shortener.config.settings import Settings
-from url_shortener.data.db.sql_db_base import Base
+from config.settings import Settings
+from data.db.sql_db_base import Base
+
+# Import all models so Alembic can detect them
+from core.models.url_model import UrlModel  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
