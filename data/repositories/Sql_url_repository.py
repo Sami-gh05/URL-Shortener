@@ -7,10 +7,10 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from core.models.url_model import UrlModel
-from core.repositories.url_repository import UrlRepository
+from core.repositories.url_repository import IUrlRepository
 
 
-class SqlUrlRepository(UrlRepository):
+class SqlUrlRepository(IUrlRepository):
     """SQLAlchemy implementation of the URL repository interface."""
     
     def __init__(self, session: Session):
@@ -44,12 +44,21 @@ class SqlUrlRepository(UrlRepository):
             List of all UrlModel instances, ordered by created_at descending
         """
         return self.session.query(UrlModel).order_by(UrlModel.created_at.desc()).all()
-      
-      
+
+    def find_by_short_code(self, short_code: str) -> Optional[UrlModel]:
+        """Find a URL by its short code.
+
+        Args:
+            short_code: The short code to search for
+
+        Returns:
+            UrlModel if found, None otherwise
+        """
+        return self.session.query(UrlModel).filter(UrlModel.short_code == short_code).first()
 
     def get_url_model(self, short_code: str) -> Optional[UrlModel]:
         """Get a URL by its short code."""
-        return self.session.query(UrlModel).filter(UrlModel.short_code == short_code).first()
+        return self.find_by_short_code(short_code)
 
     def delete_url(self, short_code: str) -> bool:
         """Delete a URL by its short code.

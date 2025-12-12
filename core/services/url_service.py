@@ -8,7 +8,7 @@ from typing import Optional
 from sqlalchemy.exc import IntegrityError
 
 from core.models.url_model import UrlModel
-from core.repositories.url_repository import UrlRepository
+from core.repositories.url_repository import IUrlRepository
 
 
 class InvalidUrlError(Exception):
@@ -23,9 +23,12 @@ class UrlService:
     SHORT_CODE_LENGTH = 6
     MAX_RETRIES = 10
 
-    #dependency injection
-    def __init__(self, repository: UrlRepository):
-        """Initialize the URL service with a repository."""
+    def __init__(self, repository: IUrlRepository):
+        """Initialize the URL service with a repository.
+        
+        Args:
+            repository: An implementation of IUrlRepository interface
+        """
         self.repository = repository
 
     def _generate_short_code(self) -> str:

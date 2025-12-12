@@ -6,7 +6,7 @@ from typing import Optional
 
 from core.models.url_model import UrlModel
 
-class UrlRepository(ABC):
+class IUrlRepository(ABC):
     """Abstract interface for URL repository operations.
 
     This interface defines the contract that all URL repository implementations
@@ -50,11 +50,16 @@ class UrlRepository(ABC):
         """
         pass
 
+    @abstractmethod
     def get_url_model(self, short_code: str) -> Optional[UrlModel]:
         """Get a URL object by its short code.
 
-        returns None if the URL is not found."""
+        Args:
+            short_code: The short code to search for
 
+        Returns:
+            UrlModel if found, None otherwise
+        """
         pass
 
 

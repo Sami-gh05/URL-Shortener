@@ -3,21 +3,18 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
-from starlette.responses import RedirectResponse, JSONResponse
-from fastapi import APIRouter, Depends, status, HTTPException
-from fastapi.responses import RedirectResponse as HTTPRedirectResponse, Response
+from fastapi import APIRouter, Depends, status
+from fastapi.responses import JSONResponse, Response
+from starlette.responses import RedirectResponse
+from sqlalchemy.orm import Session
 
 from api.controller_schemas.url_schemas import (
     CreateUrlRequest,
-    SuccessGetResponse, SuccessDeleteResponse,
+    SuccessGetResponse,
     SuccessListResponse,
     FailureResponse,
     UrlResponse,
 )
-
-from sqlalchemy.orm import Session
 from core.services.url_service import UrlService, InvalidUrlError
 from data.db.session import get_db_session
 from data.repositories.Sql_url_repository import SqlUrlRepository
@@ -105,7 +102,7 @@ def get_all_urls(
         )
 
 @router.get(
-    "{short_code}",
+    "/{short_code}",
     response_model=SuccessGetResponse,
     status_code=status.HTTP_200_OK,
     responses={
@@ -115,17 +112,23 @@ def get_all_urls(
 )
 def get_url_by_short_code(
     short_code: str,
-    service: Annotated[UrlService, Depends(get_url_service)]
+    service: Annotated[UrlService, Depends(get_url_service)],
 ) -> SuccessGetResponse:
     """Get the original url by short code (metadata endpoint)."""
-    url_model = service.get_url_model(short_code)
-    if url_model is None:
+    try:
+        url_model = service.get_url_model(short_code)
+        if url_model is None:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={"status": "failure", "message": "URL not found"},
+            )
+        url_response = UrlResponse.model_validate(url_model)
+        return SuccessGetResponse(data=url_response)
+    except Exception as e:
         return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content={"status": "failure", "message": "URL not found"},
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"status": "failure", "message": f"Internal server error: {str(e)}"},
         )
-    url_response = UrlResponse.model_validate(url_model)
-    return SuccessGetResponse(data=url_response)
 
 
 @router.get(
@@ -141,46 +144,57 @@ def redirect_to_original_url(
     service: Annotated[UrlService, Depends(get_url_service)],
 ):
     """Redirect to the original URL by short code (correct path: /u/{short_code})."""
-    url_model = service.get_url_model(short_code)
-    if url_model is None:
+    try:
+        url_model = service.get_url_model(short_code)
+        if url_model is None:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={"status": "failure", "message": "URL not found"},
+            )
+        original = url_model.original_url
+        return RedirectResponse(url=original, status_code=status.HTTP_302_FOUND)
+    except Exception as e:
         return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content={"status": "failure", "message": "URL not found"},
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"status": "failure", "message": f"Internal server error: {str(e)}"},
         )
-
-    original = url_model.original_url
-    return RedirectResponse(url=original, status_code=302)
 
 
 @router.delete(
-    "{short_code}",
+    "/{short_code}",
     responses={
         204: {"description": "URL deleted successfully"},
         404: {"model": FailureResponse, "description": "URL not found"},
         500: {"model": FailureResponse, "description": "Internal server error"},
     },
-    status_code=status.HTTP_204_NO_CONTENT,  # declares default success code
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_by_short_code(
     short_code: str,
     service: Annotated[UrlService, Depends(get_url_service)],
 ):
     """Delete a shortened URL by its short code."""
-    # Check existence first (so we can return 404 if missing)
-    url_model = service.get_url_model(short_code)
-    if url_model is None:
+    try:
+        # Check existence first (so we can return 404 if missing)
+        url_model = service.get_url_model(short_code)
+        if url_model is None:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={"status": "failure", "message": "URL not found"},
+            )
+
+        delete_status: bool = service.delete_url(short_code)
+        if delete_status:
+            # 204 No Content must have an empty body
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+        # If deletion failed for internal reasons
         return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content={"status": "failure", "message": "URL not found"},
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"status": "failure", "message": "Failed to delete URL"},
         )
-
-    delete_status: bool = service.delete_url(short_code)
-    if delete_status:
-        # 204 No Content must have an empty body
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-    # If deletion failed for internal reasons
-    return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"status": "failure", "message": "Failed to delete URL"},
-    )
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"status": "failure", "message": f"Internal server error: {str(e)}"},
+        )
